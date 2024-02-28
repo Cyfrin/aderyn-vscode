@@ -12,7 +12,11 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "helloworld" is now active!');
-	let outputChannel = vscode.window.createOutputChannel("Aderyn");
+	let terminalOptions = {
+		name: "Aderyn",
+		cwd: vscode.workspace.workspaceFolders?.[0].uri.fsPath.toString() ?? "No workspace"
+	};
+	let outputChannel = vscode.window.createTerminal(terminalOptions);
 
 
 	// The command has been defined in the package.json file
@@ -21,17 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('helloworld.helloWorld', () => {
 
 		outputChannel.show();
-		outputChannel.appendLine("Running aderyn...");
-
-		let path = vscode.workspace.workspaceFolders?.[0].uri.fsPath.toString() ?? "No workspace";
-		let commandString = "cd " + path + " && pwd && aderyn --output report.json";
-		let cmd = util.promisify(child_process.exec);
-
-		cmd(commandString)
-		.catch((e: any) => vscode.window.showErrorMessage(e.message))
-		.then((result: any) => {
-			outputChannel.append(result.stdout);
-		});
+		outputChannel.sendText("aderyn --output report.json");	
 
 	});
 
