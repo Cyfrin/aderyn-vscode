@@ -25,6 +25,9 @@ export function activate(context: vscode.ExtensionContext) {
 			return; // Stop the command execution if there's no workspace
 		}
 
+		// TODO: require a version of aderyn
+		// TODO: Wayyyyyy more visible output of what's happening
+
 		const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
         const command = 'aderyn --output report.json';
 
