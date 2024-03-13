@@ -14,8 +14,10 @@ export function activate(context: vscode.ExtensionContext) {
     // Create an output channel
     const aderynOutputChannel = vscode.window.createOutputChannel("Aderyn Output");
     context.subscriptions.push(aderynOutputChannel);
+    const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
 
     let disposable = vscode.commands.registerCommand('aderyn-vscode.run', () => {
+        diagnosticCollection.clear();
         if (!vscode.workspace.workspaceFolders) {
             vscode.window.showErrorMessage("Please open a workspace before running this command.");
             return;
@@ -26,8 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
         aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
         aderynOutputChannel.appendLine("Running aderyn... (Compiling contracts first...)");
 
+        // Construct the path to the binary
+        const binaryPath = path.join(context.extensionPath, 'bin', 'aderyn');
+
         // Assuming you're inside the command registration callback
-        const command = spawn('aderyn', ['--output', 'report.json'], {
+        const command = spawn(binaryPath, ['--output', 'report.json'], {
             cwd: workspaceFolder,
             shell: true,
             env: { ...process.env, ADERYN_CLOC_SKIP: '1' },
@@ -44,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
         command.on('close', (code) => {
             aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
             if (code === 0) {
-                loadAndHighlightIssues(context);
+                loadAndHighlightIssues(context, diagnosticCollection);
             } else {
                 vscode.window.showErrorMessage("Aderyn did not finish successfully.");
             }
@@ -58,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 
 
-function loadAndHighlightIssues(context: vscode.ExtensionContext) {
+function loadAndHighlightIssues(context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
     const reportPath = path.join(workspaceFolder!, 'report.json');
 
@@ -69,12 +74,11 @@ function loadAndHighlightIssues(context: vscode.ExtensionContext) {
         }
 
         const report = JSON.parse(data);
-        highlightIssues(report, context);
+        highlightIssues(report, context, diagnosticCollection);
     });
 }
 
-function highlightIssues(report: any, context: vscode.ExtensionContext) {
-    const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
+function highlightIssues(report: any, context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection) {
     context.subscriptions.push(diagnosticCollection);
     diagnosticCollection.clear();
 

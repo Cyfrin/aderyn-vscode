@@ -2,7 +2,7 @@
   "name": "aderyn-vscode",
   "displayName": "Aderyn",
   "description": "VSCode extension for Aderyn",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "license": "MIT",
   "icon": "logo.png",
   "repository": {
