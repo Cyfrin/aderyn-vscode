@@ -3,54 +3,55 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    console.log('Congratulations, your extension "aderyn-vscode" is now active!');
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "aderyn-vscode" is now active!');
-	
-	
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('aderyn-vscode.run', () => {
+    // Create an output channel
+    const aderynOutputChannel = vscode.window.createOutputChannel("Aderyn Output");
+    context.subscriptions.push(aderynOutputChannel);
 
-		if (!vscode.workspace.workspaceFolders) {
-			vscode.window.showErrorMessage("Please open a workspace before running this command.");
-			return; // Stop the command execution if there's no workspace
-		}
+    let disposable = vscode.commands.registerCommand('aderyn-vscode.run', () => {
+        if (!vscode.workspace.workspaceFolders) {
+            vscode.window.showErrorMessage("Please open a workspace before running this command.");
+            return;
+        }
 
-		// TODO: require a version of aderyn
-		// TODO: Wayyyyyy more visible output of what's happening
+        const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
-		const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        const command = 'aderyn --output report.json';
+        aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
+        aderynOutputChannel.appendLine("Running aderyn... (Compiling contracts first...)");
 
-		console.log('Running aderyn...');
-        exec(command, { cwd: workspaceFolder }, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`exec error: ${error}`);
-                return;
-            }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
+        // Assuming you're inside the command registration callback
+        const command = spawn('aderyn', ['--output', 'report.json'], {
+            cwd: workspaceFolder,
+            shell: true,
+            env: { ...process.env, ADERYN_CLOC_SKIP: '1' },
+        });
 
-            // Check for specific output indicating command completion
-            if (stdout.includes("Report printed to report.json")) {
+        command.stdout.on('data', (data) => {
+            aderynOutputChannel.append(data.toString());
+        });
+
+        command.stderr.on('data', (data) => {
+            aderynOutputChannel.append(data.toString());
+        });
+
+        command.on('close', (code) => {
+            aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
+            if (code === 0) {
                 loadAndHighlightIssues(context);
             } else {
                 vscode.window.showErrorMessage("Aderyn did not finish successfully.");
             }
         });
+    });
 
-	});
-
-	context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable);
 }
 
 // This method is called when your extension is deactivated
