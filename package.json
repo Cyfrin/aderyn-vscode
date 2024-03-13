@@ -3,6 +3,11 @@
   "displayName": "Aderyn",
   "description": "VSCode extension for Aderyn",
   "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cyfrin/aderyn"
+  },
   "engines": {
     "vscode": "^1.86.0"
   },
