@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/Cyfrin/aderyn"
   },
+  "publisher": "Cyfrin",
   "engines": {
     "vscode": "^1.86.0"
   },
