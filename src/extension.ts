@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { spawn } from 'child_process';
 
 
@@ -17,23 +16,25 @@ export function activate(context: vscode.ExtensionContext) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
+        diagnosticCollection.clear();
         runAderyn(context, aderynOutputChannel, diagnosticCollection);
     });
 
     let solidityWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
         if (document.languageId === 'solidity' && document.fileName.endsWith('.sol')) {
-            runAderyn(context, aderynOutputChannel, diagnosticCollection);
+            diagnosticCollection.delete(document.uri);
+            runAderyn(context, aderynOutputChannel, diagnosticCollection, document.uri);
         }
     })
 
     context.subscriptions.push(runCommand);
+    context.subscriptions.push(solidityWatcher);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscode.OutputChannel, diagnosticCollection: vscode.DiagnosticCollection) {
-    diagnosticCollection.clear();
+function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscode.OutputChannel, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
     if (!vscode.workspace.workspaceFolders) {
         vscode.window.showErrorMessage("Please open a workspace before running this command.");
         return;
@@ -64,68 +65,77 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     command.on('close', (code) => {
         aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
         if (code === 0) {
-            const reportJsonString = stdoutBuffer.split("STDOUT START")[1].split("STDOUT END")[0];
-            loadAndHighlightIssues(context, diagnosticCollection, reportJsonString.trim());
+            const report = parseStdoutBuffer(stdoutBuffer);
+            highlightIssues(report, context, diagnosticCollection, documentUri);
         } else {
             vscode.window.showErrorMessage("Aderyn did not finish successfully.");
         }
     });
 }
 
-
-function loadAndHighlightIssues(context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection, reportJsonString: string) {
+function parseStdoutBuffer(stdoutBuffer: string): any {
     try {
-        const report = JSON.parse(reportJsonString);
-        highlightIssues(report, context, diagnosticCollection);
+        const reportJsonString = stdoutBuffer.split("STDOUT START")[1].split("STDOUT END")[0];
+        return JSON.parse(reportJsonString.trim());
     } catch (err) {
         console.error('Error parsing JSON from stdout:', err);
+        return {};
     }
 }
 
-function highlightIssues(report: any, context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection) {
-    context.subscriptions.push(diagnosticCollection);
-    diagnosticCollection.clear();
+function highlightIssues(report: any, context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
 
 	report.critical_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "CRITICAL", vscode.DiagnosticSeverity.Error, diagnosticCollection);
+			highlightIssueInstance(issue, instance, "CRITICAL", vscode.DiagnosticSeverity.Error, diagnosticCollection, documentUri);
         });
     });
 
     report.high_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "HIGH", vscode.DiagnosticSeverity.Error, diagnosticCollection);
+			highlightIssueInstance(issue, instance, "HIGH", vscode.DiagnosticSeverity.Error, diagnosticCollection, documentUri);
         });
     });
 
 	report.medium_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "MEDIUM", vscode.DiagnosticSeverity.Warning, diagnosticCollection);
+			highlightIssueInstance(issue, instance, "MEDIUM", vscode.DiagnosticSeverity.Warning, diagnosticCollection, documentUri);
         });
     });
 
 	report.low_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Information, diagnosticCollection);
+			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
         });
     });
 
 	report.nc_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "NC", vscode.DiagnosticSeverity.Hint, diagnosticCollection);
+			highlightIssueInstance(issue, instance, "NC", vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
         });
     });
 }
 
-function highlightIssueInstance(issue: any, instance: any, severityString: string, diagnosticSeverity: vscode.DiagnosticSeverity, diagnosticCollection: vscode.DiagnosticCollection) {
-	const issueUri = vscode.Uri.file(path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, instance.contract_path));
-	const range = new vscode.Range(new vscode.Position(instance.line_no - 1, 0), new vscode.Position(instance.line_no - 1, Number.MAX_VALUE));
-	const hoverOverText = `${severityString}: ${issue.title}\n${issue.description}`
-	const diagnostic = new vscode.Diagnostic(range, hoverOverText, diagnosticSeverity);
-	diagnostic.source = 'Aderyn';
+function highlightIssueInstance(issue: any, instance: any, severityString: string, diagnosticSeverity: vscode.DiagnosticSeverity, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
+    const issueUri = vscode.Uri.file(path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, instance.contract_path));
+    if (documentUri && documentUri.fsPath !== issueUri.fsPath) {
+        return;
+    }
+    const srcParts = instance.src.split(':');
+    const startOffset = parseInt(srcParts[0], 10);
+    const length = parseInt(srcParts[1], 10);
 
-	const existingDiagnostics = diagnosticCollection.get(issueUri) || [];
-	const newDiagnostics = [...existingDiagnostics, diagnostic]; // Create a new array
-	diagnosticCollection.set(issueUri, newDiagnostics); // Update the collection
+    // Use a document to convert the offset into a position
+    vscode.workspace.openTextDocument(issueUri).then(document => {
+        const startPosition = document.positionAt(startOffset);
+        const endPosition = document.positionAt(startOffset + length);
+        const range = new vscode.Range(startPosition, endPosition);
+        const hoverOverText = `${severityString}: ${issue.title}\n${issue.description}`
+        const diagnostic = new vscode.Diagnostic(range, hoverOverText, diagnosticSeverity);
+        diagnostic.source = 'Aderyn';
+
+        const existingDiagnostics = diagnosticCollection.get(issueUri) || [];
+        const newDiagnostics = [...existingDiagnostics, diagnostic];
+        diagnosticCollection.set(issueUri, newDiagnostics);
+    });
 }
-
