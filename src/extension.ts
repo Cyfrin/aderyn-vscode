@@ -14,6 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
     const aderynOutputChannel = vscode.window.createOutputChannel("Aderyn Output");
     context.subscriptions.push(aderynOutputChannel);
     const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
+    context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
         diagnosticCollection.clear();
