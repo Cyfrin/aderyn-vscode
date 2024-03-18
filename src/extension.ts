@@ -16,51 +16,58 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(aderynOutputChannel);
     const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
 
-    let disposable = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        diagnosticCollection.clear();
-        if (!vscode.workspace.workspaceFolders) {
-            vscode.window.showErrorMessage("Please open a workspace before running this command.");
-            return;
-        }
-
-        const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
-
-        aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
-        aderynOutputChannel.appendLine("Running aderyn... (Compiling contracts first...)");
-
-        // Construct the path to the binary
-        const binaryPath = path.join(context.extensionPath, 'bin', 'aderyn');
-
-        // Assuming you're inside the command registration callback
-        const command = spawn(binaryPath, ['--output', 'report.json'], {
-            cwd: workspaceFolder,
-            shell: true,
-            env: { ...process.env, ADERYN_CLOC_SKIP: '1' },
-        });
-
-        command.stdout.on('data', (data) => {
-            aderynOutputChannel.append(data.toString());
-        });
-
-        command.stderr.on('data', (data) => {
-            aderynOutputChannel.append(data.toString());
-        });
-
-        command.on('close', (code) => {
-            aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
-            if (code === 0) {
-                loadAndHighlightIssues(context, diagnosticCollection);
-            } else {
-                vscode.window.showErrorMessage("Aderyn did not finish successfully.");
-            }
-        });
+    let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
+        runAderyn(context, aderynOutputChannel, diagnosticCollection);
     });
 
-    context.subscriptions.push(disposable);
+    let solidityWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+        if (document.languageId === 'solidity' && document.fileName.endsWith('.sol')) {
+            runAderyn(context, aderynOutputChannel, diagnosticCollection);
+        }
+    })
+
+    context.subscriptions.push(runCommand);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscode.OutputChannel, diagnosticCollection: vscode.DiagnosticCollection) {
+    diagnosticCollection.clear();
+    if (!vscode.workspace.workspaceFolders) {
+        vscode.window.showErrorMessage("Please open a workspace before running this command.");
+        return;
+    }
+
+    const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
+    aderynOutputChannel.appendLine("Running aderyn...");
+
+    // Assuming you're inside the command registration callback
+    const command = spawn('aderyn', ['--output', 'report.json'], {
+        cwd: workspaceFolder,
+        shell: true,
+        env: { ...process.env, ADERYN_CLOC_SKIP: '1' },
+    });
+
+    command.stdout.on('data', (data) => {
+        aderynOutputChannel.append(data.toString());
+    });
+
+    command.stderr.on('data', (data) => {
+        aderynOutputChannel.append(data.toString());
+    });
+
+    command.on('close', (code) => {
+        aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
+        if (code === 0) {
+            loadAndHighlightIssues(context, diagnosticCollection);
+        } else {
+            vscode.window.showErrorMessage("Aderyn did not finish successfully.");
+        }
+    });
+}
 
 
 function loadAndHighlightIssues(context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection) {
