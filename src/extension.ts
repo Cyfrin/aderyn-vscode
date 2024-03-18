@@ -40,18 +40,20 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     }
 
     const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    let stdoutBuffer = '';
 
     aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
     aderynOutputChannel.appendLine("Running aderyn...");
 
     // Assuming you're inside the command registration callback
-    const command = spawn('aderyn', ['--output', 'report.json'], {
+    const command = spawn('aderyn', ['--stdout', '-o report.json'], {
         cwd: workspaceFolder,
         shell: true,
         env: { ...process.env, ADERYN_CLOC_SKIP: '1' },
     });
 
     command.stdout.on('data', (data) => {
+        stdoutBuffer += data.toString();
         aderynOutputChannel.append(data.toString());
     });
 
@@ -62,7 +64,8 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     command.on('close', (code) => {
         aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
         if (code === 0) {
-            loadAndHighlightIssues(context, diagnosticCollection);
+            const reportJsonString = stdoutBuffer.split("STDOUT START")[1].split("STDOUT END")[0];
+            loadAndHighlightIssues(context, diagnosticCollection, reportJsonString.trim());
         } else {
             vscode.window.showErrorMessage("Aderyn did not finish successfully.");
         }
@@ -70,19 +73,13 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
 }
 
 
-function loadAndHighlightIssues(context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection) {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-    const reportPath = path.join(workspaceFolder!, 'report.json');
-
-    fs.readFile(reportPath, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Error reading report.json:', err);
-            return;
-        }
-
-        const report = JSON.parse(data);
+function loadAndHighlightIssues(context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection, reportJsonString: string) {
+    try {
+        const report = JSON.parse(reportJsonString);
         highlightIssues(report, context, diagnosticCollection);
-    });
+    } catch (err) {
+        console.error('Error parsing JSON from stdout:', err);
+    }
 }
 
 function highlightIssues(report: any, context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection) {
