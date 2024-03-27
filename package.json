@@ -1,8 +1,8 @@
 {
   "name": "aderyn-vscode",
   "displayName": "Aderyn",
-  "description": "VSCode extension for Aderyn",
-  "version": "0.0.6",
+  "description": "Aderyn - Solodity Smart Contract Static Analyzer and Solidity Linter.",
+  "version": "0.0.7",
   "license": "MIT",
   "icon": "logo.png",
   "repository": {
@@ -22,7 +22,7 @@
     "commands": [
       {
         "command": "aderyn-vscode.run",
-        "title": "Aderyn"
+        "title": "Aderyn - Start"
       }
     ]
   },

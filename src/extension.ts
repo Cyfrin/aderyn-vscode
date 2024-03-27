@@ -2,7 +2,8 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
+
 
 
 // This method is called when your extension is activated
@@ -17,8 +18,52 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        diagnosticCollection.clear();
-        runAderyn(context, aderynOutputChannel, diagnosticCollection);
+        const minVersion = '0.0.18';
+        exec('aderyn --version', (error, stdout, stderr) => {
+            if (error) {
+                vscode.window.showErrorMessage(
+                    "Aderyn not found. Please install aderyn.",
+                    "Open Installation Instructions"
+                  ).then(selection => {
+                    if (selection === "Open Installation Instructions") {
+                      vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
+                    }
+                  });
+                return;
+            }
+            const versionPattern = /(\d+\.\d+\.\d+)/; // Regex to extract version number
+            const match = stdout.match(versionPattern);
+            if (match) {
+                const installedVersion = match[1];
+                if (installedVersion >= minVersion) {
+                    diagnosticCollection.clear();
+                    runAderyn(context, aderynOutputChannel, diagnosticCollection);
+                } else {
+                    vscode.window.showErrorMessage(
+                        `Aderyn version is too old. \
+                        Found: ${installedVersion}, \
+                        Required: ${minVersion}. \ 
+                        Please update aderyn.`,
+                        "Open Installation Instructions"
+                      ).then(selection => {
+                        if (selection === "Open Installation Instructions") {
+                          vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
+                        }
+                      });
+                    return;
+                }
+            } else {
+                vscode.window.showErrorMessage(
+                    "Unable to determine the installed version of aderyn.",
+                    "Open Installation Instructions"
+                  ).then(selection => {
+                    if (selection === "Open Installation Instructions") {
+                      vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
+                    }
+                  });
+                return;
+            }
+        });
     });
 
     let solidityWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
