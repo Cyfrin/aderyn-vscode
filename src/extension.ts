@@ -71,7 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
             diagnosticCollection.delete(document.uri);
             runAderyn(context, aderynOutputChannel, diagnosticCollection, document.uri);
         }
-    })
+    });
+
+    runAderyn(context, aderynOutputChannel, diagnosticCollection);
 
     context.subscriptions.push(runCommand);
     context.subscriptions.push(solidityWatcher);
