@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        const minVersion = '0.0.18';
+        const minVersion = '0.0.19';
         exec('aderyn --version', (error, stdout, stderr) => {
             if (error) {
                 vscode.window.showErrorMessage(
@@ -114,7 +114,7 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
             const report = parseStdoutBuffer(stdoutBuffer);
             highlightIssues(report, context, diagnosticCollection, documentUri);
         } else {
-            vscode.window.showErrorMessage("Aderyn did not finish successfully.");
+            vscode.window.showErrorMessage(`Aderyn did not finish successfully. Exit code: ${code}`);
         }
     });
 }
