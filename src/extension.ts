@@ -133,13 +133,13 @@ function highlightIssues(report: any, context: vscode.ExtensionContext, diagnost
 
     report.high_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "HIGH", vscode.DiagnosticSeverity.Error, diagnosticCollection, documentUri);
+			highlightIssueInstance(issue, instance, "HIGH", vscode.DiagnosticSeverity.Warning, diagnosticCollection, documentUri);
         });
     });
 
 	report.low_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Warning, diagnosticCollection, documentUri);
+			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
         });
     });
 }

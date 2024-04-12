@@ -2,7 +2,7 @@
   "name": "aderyn-vscode",
   "displayName": "Aderyn",
   "description": "Aderyn - Solodity Smart Contract Static Analyzer and Solidity Linter.",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "license": "MIT",
   "icon": "logo.png",
   "repository": {
