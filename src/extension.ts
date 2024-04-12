@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        const minVersion = '0.0.19';
+        const minVersion = '0.0.21';
         exec('aderyn --version', (error, stdout, stderr) => {
             if (error) {
                 vscode.window.showErrorMessage(
@@ -131,33 +131,15 @@ function parseStdoutBuffer(stdoutBuffer: string): any {
 
 function highlightIssues(report: any, context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
 
-	report.critical_issues.issues.forEach((issue: any) => {
-        issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "CRITICAL", vscode.DiagnosticSeverity.Error, diagnosticCollection, documentUri);
-        });
-    });
-
     report.high_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
 			highlightIssueInstance(issue, instance, "HIGH", vscode.DiagnosticSeverity.Error, diagnosticCollection, documentUri);
         });
     });
 
-	report.medium_issues.issues.forEach((issue: any) => {
-        issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "MEDIUM", vscode.DiagnosticSeverity.Warning, diagnosticCollection, documentUri);
-        });
-    });
-
 	report.low_issues.issues.forEach((issue: any) => {
         issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
-        });
-    });
-
-	report.nc_issues.issues.forEach((issue: any) => {
-        issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "NC", vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
+			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Warning, diagnosticCollection, documentUri);
         });
     });
 }
