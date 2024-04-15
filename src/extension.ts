@@ -93,10 +93,9 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     aderynOutputChannel.appendLine("Running aderyn...");
 
     // Assuming you're inside the command registration callback
-    const command = spawn('aderyn', ['--stdout', '-o report.json'], {
+    const command = spawn('aderyn', ['--stdout', '-o report.json', '--skip-cloc'], {
         cwd: workspaceFolder,
         shell: true,
-        env: { ...process.env, ADERYN_CLOC_SKIP: '1' },
     });
 
     command.stdout.on('data', (data) => {
