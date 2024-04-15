@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        const minVersion = '0.0.21';
+        const minVersion = '0.0.22';
         exec('aderyn --version', (error, stdout, stderr) => {
             if (error) {
                 vscode.window.showErrorMessage(
