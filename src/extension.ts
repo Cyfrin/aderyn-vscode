@@ -11,6 +11,10 @@ import { spawn, exec } from 'child_process';
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "aderyn-vscode" is now active!');
 
+    const item = vscode.window.createStatusBarItem(
+        vscode.StatusBarAlignment.Right
+    );
+
     // Create an output channel
     const aderynOutputChannel = vscode.window.createOutputChannel("Aderyn Output");
     context.subscriptions.push(aderynOutputChannel);
@@ -75,6 +79,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(runCommand);
     context.subscriptions.push(solidityWatcher);
+
+    item.text = "$(beaker) Aderyn Start";
+    item.command = "aderyn-vscode.run";
+    item.show();
 }
 
 // This method is called when your extension is deactivated
