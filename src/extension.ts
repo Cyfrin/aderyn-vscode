@@ -4,12 +4,19 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { spawn, exec } from 'child_process';
 
-
-
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "aderyn-vscode" is now active!');
+
+    // Create the status bar item
+    const aderynStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+    aderynStatusBarItem.command = 'aderyn-vscode.run';
+    aderynStatusBarItem.text = `$(play) Run Aderyn`;
+    aderynStatusBarItem.tooltip = "Run Aderyn Analysis";
+    aderynStatusBarItem.show();
+
+    context.subscriptions.push(aderynStatusBarItem);
 
     // Create an output channel
     const aderynOutputChannel = vscode.window.createOutputChannel("Aderyn Output");
@@ -18,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        const minVersion = '0.0.22';
+        const minVersion = '0.0.26';
         exec('aderyn --version', (error, stdout, stderr) => {
             if (error) {
                 vscode.window.showErrorMessage(
