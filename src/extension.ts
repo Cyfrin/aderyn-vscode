@@ -96,7 +96,7 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
     let stdoutBuffer = '';
 
-    aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
+    // aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
     aderynOutputChannel.appendLine("Running aderyn...");
 
     // Assuming you're inside the command registration callback
