@@ -1,24 +1,17 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { spawn, exec } from 'child_process';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "aderyn-vscode" is now active!');
 
-    // Create the status bar item
     const aderynStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
     aderynStatusBarItem.command = 'aderyn-vscode.run';
     aderynStatusBarItem.text = `$(play) Run Aderyn`;
     aderynStatusBarItem.tooltip = "Run Aderyn Analysis";
     aderynStatusBarItem.show();
-
     context.subscriptions.push(aderynStatusBarItem);
 
-    // Create an output channel
     const aderynOutputChannel = vscode.window.createOutputChannel("Aderyn Output");
     context.subscriptions.push(aderynOutputChannel);
     const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
@@ -31,11 +24,11 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage(
                     "Aderyn not found. Please install aderyn.",
                     "Open Installation Instructions"
-                  ).then(selection => {
+                ).then(selection => {
                     if (selection === "Open Installation Instructions") {
-                      vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
+                        vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
                     }
-                  });
+                });
                 return;
             }
             const versionPattern = /(\d+\.\d+\.\d+)/; // Regex to extract version number
@@ -47,27 +40,24 @@ export function activate(context: vscode.ExtensionContext) {
                     runAderyn(context, aderynOutputChannel, diagnosticCollection);
                 } else {
                     vscode.window.showErrorMessage(
-                        `Aderyn version is too old. \
-                        Found: ${installedVersion}, \
-                        Required: ${minVersion}. \ 
-                        Please update aderyn.`,
+                        `Aderyn version is too old. Found: ${installedVersion}, Required: ${minVersion}. Please update aderyn.`,
                         "Open Installation Instructions"
-                      ).then(selection => {
+                    ).then(selection => {
                         if (selection === "Open Installation Instructions") {
-                          vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
+                            vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
                         }
-                      });
+                    });
                     return;
                 }
             } else {
                 vscode.window.showErrorMessage(
                     "Unable to determine the installed version of aderyn.",
                     "Open Installation Instructions"
-                  ).then(selection => {
+                ).then(selection => {
                     if (selection === "Open Installation Instructions") {
-                      vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
+                        vscode.env.openExternal(vscode.Uri.parse("https://github.com/Cyfrin/aderyn?tab=readme-ov-file#usage"));
                     }
-                  });
+                });
                 return;
             }
         });
@@ -78,16 +68,15 @@ export function activate(context: vscode.ExtensionContext) {
             diagnosticCollection.delete(document.uri);
             runAderyn(context, aderynOutputChannel, diagnosticCollection, document.uri);
         }
-    })
+    });
 
     context.subscriptions.push(runCommand);
     context.subscriptions.push(solidityWatcher);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
 
-function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscode.OutputChannel, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
+function runAderyn(context: vscode.ExtensionContext, aderynOutputChannel: vscode.OutputChannel, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
     if (!vscode.workspace.workspaceFolders) {
         vscode.window.showErrorMessage("Please open a workspace before running this command.");
         return;
@@ -96,10 +85,8 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
     let stdoutBuffer = '';
 
-    // aderynOutputChannel.show(true); // Brings the output channel into view and reveals it to the user
     aderynOutputChannel.appendLine("Running aderyn...");
 
-    // Assuming you're inside the command registration callback
     const command = spawn('aderyn', ['--stdout', '-o report.json', '--skip-cloc', '--skip-update-check'], {
         cwd: workspaceFolder,
         shell: true,
@@ -117,8 +104,17 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     command.on('close', (code) => {
         aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
         if (code === 0) {
-            const report = parseStdoutBuffer(stdoutBuffer);
-            highlightIssues(report, context, diagnosticCollection, documentUri);
+            try {
+                const report = parseStdoutBuffer(stdoutBuffer);
+                highlightIssues(report, context, diagnosticCollection, documentUri);
+            } catch (error) {
+                vscode.window.showErrorMessage('Error parsing Aderyn output.');
+                if (error instanceof Error) {
+                    aderynOutputChannel.appendLine(`Error: ${error.message}`);
+                } else {
+                    aderynOutputChannel.appendLine(`Unknown error: ${JSON.stringify(error)}`);
+                }
+            }
         } else {
             vscode.window.showErrorMessage(`Aderyn did not finish successfully. Exit code: ${code}`);
         }
@@ -130,22 +126,17 @@ function parseStdoutBuffer(stdoutBuffer: string): any {
         const reportJsonString = stdoutBuffer.split("STDOUT START")[1].split("STDOUT END")[0];
         return JSON.parse(reportJsonString.trim());
     } catch (err) {
-        console.error('Error parsing JSON from stdout:', err);
-        return {};
+        throw new Error('Error parsing JSON from stdout');
     }
 }
 
 function highlightIssues(report: any, context: vscode.ExtensionContext, diagnosticCollection: vscode.DiagnosticCollection, documentUri?: vscode.Uri) {
-
-    report.high_issues.issues.forEach((issue: any) => {
-        issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "HIGH", vscode.DiagnosticSeverity.Warning, diagnosticCollection, documentUri);
-        });
-    });
-
-	report.low_issues.issues.forEach((issue: any) => {
-        issue.instances.forEach((instance: any) => {
-			highlightIssueInstance(issue, instance, "LOW", vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
+    const issueTypes = ['high_issues', 'low_issues'];
+    issueTypes.forEach(type => {
+        report[type].issues.forEach((issue: any) => {
+            issue.instances.forEach((instance: any) => {
+                highlightIssueInstance(issue, instance, type.toUpperCase(), type === 'high_issues' ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Information, diagnosticCollection, documentUri);
+            });
         });
     });
 }
@@ -159,7 +150,6 @@ function highlightIssueInstance(issue: any, instance: any, severityString: strin
     const startOffset = parseInt(srcParts[0], 10);
     const length = parseInt(srcParts[1], 10);
 
-    // Use a document to convert the offset into a position
     vscode.workspace.openTextDocument(issueUri).then(document => {
         const startPosition = document.positionAt(startOffset);
         const endPosition = document.positionAt(startOffset + length);
