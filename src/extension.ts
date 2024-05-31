@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     let runCommand = vscode.commands.registerCommand('aderyn-vscode.run', () => {
-        const minVersion = '0.0.27';
+        const minVersion = '0.1.0';
         exec('aderyn --version', (error, stdout, stderr) => {
             if (error) {
                 vscode.window.showErrorMessage(
@@ -100,7 +100,7 @@ function runAderyn( context: vscode.ExtensionContext, aderynOutputChannel: vscod
     aderynOutputChannel.appendLine("Running aderyn...");
 
     // Assuming you're inside the command registration callback
-    const command = spawn('aderyn', ['--icf', '--stdout', '-o report.json', '--skip-cloc', '--skip-update-check'], {
+    const command = spawn('aderyn', ['--stdout', '-o report.json', '--skip-cloc', '--skip-update-check'], {
         cwd: workspaceFolder,
         shell: true,
     });
