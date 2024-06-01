@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-	  "module": "commonjs", // Node16 is correct but sometimes commonjs is preferred for Node.js projects
+	  "module": "Node16",
 	  "target": "ES2022",
 	  "outDir": "out",
 	  "lib": ["ES2022"],
