@@ -44,11 +44,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
         case "watch": {
           vscode.window.showInformationMessage("Aderyn is now watching your codebase ...");
-          const scope = data.value.scope;
-          const exclude = data.value.exclude;
-          this._outputChannel.appendLine(`Scope: ${scope}, Exclude: ${exclude}`);
+          const src = data.value.src;
+          const includes = data.value.includes;
+          const excludes = data.value.excludes;
+          this._outputChannel.appendLine(`SRC: ${src} Includes: ${includes}, Excludes: ${excludes}`);
           this._outputChannel.show(true);
-          startAderynWatch(this._context, this._outputChannel, this._diagnosticCollection, '', scope, exclude);
+          startAderynWatch(this._context, this._outputChannel, this._diagnosticCollection, src, includes, excludes);
           break;
         }
       }
@@ -94,10 +95,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       <script nonce="${nonce}" src="${scriptUri}"></script>
     </head>
     <body>
-      <label for="scope">Scope</label>
-      <input name="scope" id="scope" type="text" />
-      <label for="exclude">Exclude</label>
-      <input name="exclude" id="exclude" type="text" />
+      <label for="src">SRC Path</label>
+      <input name="src" id="src" type="text" />
+      <label for="path-includes">Path Includes</label>
+      <input name="path-includes" id="path-includes" type="text" />
+      <label for="path-excludes">Path Exclude</label>
+      <input name="path-excludes" id="path-excludes" type="text" />
       <button id="watchBtn"> Aderyn Watch </button>
     </body>
     </html>`;

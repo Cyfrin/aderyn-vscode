@@ -5,12 +5,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const watchBtn = document.getElementById('watchBtn');
   if (watchBtn) {
     watchBtn.addEventListener('click', () => {
-      const scope = document.getElementById('scope').value;
-      const exclude = document.getElementById('exclude').value;
-      console.log('Button clicked:', scope, exclude); // Log button click event
+      const src = document.getElementById('src').value;
+      const includes = document.getElementById('path-includes').value;
+      const excludes = document.getElementById('path-excludes').value;
+      console.log('Button clicked:', src, includes, excludes); // Log button click event
       vscode.postMessage({
         type: 'watch',
-        value: { scope, exclude }
+        value: { src, includes, excludes }
       });
     });
   } else {
