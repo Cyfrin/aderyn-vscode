@@ -10,7 +10,7 @@ export function registerRunAderynCommand(context: vscode.ExtensionContext, adery
         if (!aderynProcess) {
             const versionCheckPassed = await checkAderynVersion();
             if (versionCheckPassed) {
-                aderynProcess = startAderynWatch(context, aderynOutputChannel, diagnosticCollection);
+                aderynProcess = startAderynWatch(context, aderynOutputChannel, diagnosticCollection, '', '', '');
             }
         } else {
             vscode.window.showInformationMessage('Aderyn is already running.');

@@ -1,11 +1,18 @@
 import * as vscode from "vscode";
 import { getNonce } from "../util/getNonce";
+import { registerRunAderynCommand } from "../commands/runAderyn";
+import { startAderynWatch } from "../util/startAderynWatch";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _doc?: vscode.TextDocument;
 
-  constructor(private readonly _extensionUri: vscode.Uri, private readonly _outputChannel: vscode.OutputChannel) {}
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    private readonly _context: vscode.ExtensionContext,
+    private readonly _outputChannel: vscode.OutputChannel,
+    private readonly _diagnosticCollection: vscode.DiagnosticCollection
+  ) {}
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
@@ -41,6 +48,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           const exclude = data.value.exclude;
           this._outputChannel.appendLine(`Scope: ${scope}, Exclude: ${exclude}`);
           this._outputChannel.show(true);
+          startAderynWatch(this._context, this._outputChannel, this._diagnosticCollection, '', scope, exclude);
           break;
         }
       }
