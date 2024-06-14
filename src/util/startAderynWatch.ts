@@ -61,9 +61,6 @@ export function startAderynWatch(
 
     aderynProcess.on('close', (code) => {
         aderynOutputChannel.appendLine(`Aderyn process exited with code ${code}`);
-        if (code !== 0) {
-            vscode.window.showErrorMessage(`Aderyn did not finish successfully. Exit code: ${code}`);
-        }
     });
 
     return aderynProcess;

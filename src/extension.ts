@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     aderynStatusBarItem.show();
     context.subscriptions.push(aderynStatusBarItem);
 
-    registerRunAderynCommand(context, aderynOutputChannel, diagnosticCollection);
+    registerRunAderynCommand(context, aderynOutputChannel, diagnosticCollection, aderynStatusBarItem);
 
     const sidebarProvider = new SidebarProvider(
         context.extensionUri,
