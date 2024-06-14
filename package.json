@@ -45,6 +45,10 @@
       {
         "command": "aderyn-vscode.run",
         "title": "Aderyn - Start"
+      },
+      {
+        "command": "aderyn-vscode.stop",
+        "title": "Aderyn - Stop"
       }
     ]
   },
