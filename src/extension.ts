@@ -15,6 +15,13 @@ export function activate(context: vscode.ExtensionContext) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection("aderynIssues");
     context.subscriptions.push(diagnosticCollection);
 
+    const aderynStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+    aderynStatusBarItem.command = 'aderyn-vscode.run';
+    aderynStatusBarItem.text = `$(play) Run Aderyn`;
+    aderynStatusBarItem.tooltip = "Run Aderyn Analysis";
+    aderynStatusBarItem.show();
+    context.subscriptions.push(aderynStatusBarItem);
+
     registerRunAderynCommand(context, aderynOutputChannel, diagnosticCollection);
 
     const sidebarProvider = new SidebarProvider(
