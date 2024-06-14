@@ -2,30 +2,13 @@ import * as vscode from 'vscode';
 import { spawn, ChildProcess } from 'child_process';
 import { highlightIssues } from '../diagnostics/highlightIssues';
 
-export function startAderynWatch(
-    context: vscode.ExtensionContext,
-    aderynOutputChannel: vscode.OutputChannel,
-    diagnosticCollection: vscode.DiagnosticCollection,
-    src: string,
-    includes: string,
-    excludes: string
-): ChildProcess {
+export function startAderynWatch(context: vscode.ExtensionContext, aderynOutputChannel: vscode.OutputChannel, diagnosticCollection: vscode.DiagnosticCollection): ChildProcess {
     const workspaceFolder = vscode.workspace.workspaceFolders![0].uri.fsPath;
     let stdoutBuffer = '';
 
     aderynOutputChannel.appendLine("Starting Aderyn with --watch...");
 
-    let args = ['--watch', '--stdout', '--skip-cloc', '--skip-update-check'];
-    if (src) {
-        args.push('--src', src);
-    }
-    if (includes) {
-        args.push('-i', includes);
-    }
-    if (excludes) {
-        args.push('-x', excludes);
-    }
-    const aderynProcess = spawn('aderyn', args, {
+    const aderynProcess = spawn('aderyn', ['--watch', '--stdout', '--skip-cloc', '--skip-update-check'], {
         cwd: workspaceFolder,
         shell: true,
     });

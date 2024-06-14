@@ -21,26 +21,6 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "aderyn-sidebar-view",
-          "title": "Aderyn",
-          "icon": "media/aderyn.svg"
-        }
-      ]
-    },
-    "views": {
-      "aderyn-sidebar-view": [
-        {
-          "type": "webview",
-          "id": "aderyn-sidebar",
-          "name": "Aderyn",
-          "icon": "media/aderyn.svg",
-          "contextualTitle": "Aderyn"
-        }
-      ]
-    },
     "commands": [
       {
         "command": "aderyn-vscode.run",
