@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { spawn, ChildProcess } from 'child_process';
 import { highlightIssues } from '../diagnostics/highlightIssues';
+import { AderynTreeDataProvider } from '../providers/AderynTreeDataProvider';
 
 export function startAderynWatch(
     context: vscode.ExtensionContext,
     aderynOutputChannel: vscode.OutputChannel,
     diagnosticCollection: vscode.DiagnosticCollection,
+    treeDataProvider: AderynTreeDataProvider,
     src: string,
     includes: string,
     excludes: string
@@ -42,7 +44,7 @@ export function startAderynWatch(
             try {
                 const report = JSON.parse(reportJsonString);
                 diagnosticCollection.clear(); // Clear diagnostics before updating with new data
-                highlightIssues(report, diagnosticCollection);
+                highlightIssues(report, diagnosticCollection, treeDataProvider);
             } catch (error) {
                 vscode.window.showErrorMessage('Error parsing Aderyn output.');
                 if (error instanceof Error) {

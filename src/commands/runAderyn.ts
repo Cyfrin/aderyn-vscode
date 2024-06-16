@@ -2,12 +2,14 @@ import * as vscode from 'vscode';
 import { checkAderynVersion } from '../util/checkAderynVersion';
 import { ChildProcess } from 'child_process';
 import { startAderynWatch } from '../util/startAderynWatch';
+import { AderynTreeDataProvider } from '../providers/AderynTreeDataProvider';
 
 export function registerRunAderynCommand(
     context: vscode.ExtensionContext,
     aderynOutputChannel: vscode.OutputChannel,
     diagnosticCollection: vscode.DiagnosticCollection,
-    statusBarItem: vscode.StatusBarItem
+    statusBarItem: vscode.StatusBarItem,
+    treeDataProvider: AderynTreeDataProvider
 ) {
     let aderynProcess: ChildProcess | null = null;
 
@@ -15,7 +17,7 @@ export function registerRunAderynCommand(
         if (!aderynProcess) {
             const versionCheckPassed = await checkAderynVersion();
             if (versionCheckPassed) {
-                aderynProcess = startAderynWatch(context, aderynOutputChannel, diagnosticCollection, '', '', '');
+                aderynProcess = startAderynWatch(context, aderynOutputChannel, diagnosticCollection, treeDataProvider, '', '', '');
                 statusBarItem.text = `$(primitive-square) Stop Aderyn`;
                 statusBarItem.command = 'aderyn-vscode.stop';
             }
@@ -32,6 +34,7 @@ export function registerRunAderynCommand(
             diagnosticCollection.clear();
             statusBarItem.text = `$(play) Run Aderyn`;
             statusBarItem.command = 'aderyn-vscode.run';
+            treeDataProvider.refresh([]);
         } else {
             vscode.window.showInformationMessage('Aderyn is not running.');
         }

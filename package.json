@@ -1,7 +1,7 @@
 {
   "name": "aderyn-vscode",
   "displayName": "Aderyn",
-  "description": "Aderyn - Solodity Smart Contract Static Analyzer and Solidity Linter.",
+  "description": "Aderyn - Solidity Smart Contract Static Analyzer and Solidity Linter.",
   "version": "0.0.16",
   "license": "MIT",
   "icon": "logo.png",
@@ -24,20 +24,17 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "aderyn-sidebar-view",
+          "id": "aderynSidebar",
           "title": "Aderyn",
           "icon": "media/aderyn.svg"
         }
       ]
     },
     "views": {
-      "aderyn-sidebar-view": [
+      "aderynSidebar": [
         {
-          "type": "webview",
-          "id": "aderyn-sidebar",
-          "name": "Aderyn",
-          "icon": "media/aderyn.svg",
-          "contextualTitle": "Aderyn"
+          "id": "aderynSidebarView",
+          "name": "Aderyn Issues"
         }
       ]
     },
