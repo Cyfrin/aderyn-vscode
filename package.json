@@ -43,6 +43,10 @@
     },
     "commands": [
       {
+        "command": "aderyn-vscode.configure",
+        "title": "Aderyn - Configure"
+      },
+      {
         "command": "aderyn-vscode.run",
         "title": "Aderyn - Start"
       },

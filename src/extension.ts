@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { registerRunAderynCommand } from './commands/runAderyn';
 import { SidebarProvider } from './providers/SidebarProvider';
+import { registerConfigureAderynCommand } from './commands/configureAderyn';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "aderyn-vscode" is now active!');
@@ -22,6 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
     aderynStatusBarItem.show();
     context.subscriptions.push(aderynStatusBarItem);
 
+    registerConfigureAderynCommand(context);
     registerRunAderynCommand(context, aderynOutputChannel, diagnosticCollection, aderynStatusBarItem);
 
     const sidebarProvider = new SidebarProvider(
