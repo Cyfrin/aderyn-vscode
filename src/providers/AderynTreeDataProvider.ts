@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { IssueTypeItem } from './IssueTypeItem';
 import { IndividualIssueItem } from './IndividualIssueItem';
 import { IssueInstanceItem } from './IssueInstanceItem';
@@ -33,15 +34,29 @@ export class AderynTreeDataProvider implements vscode.TreeDataProvider<vscode.Tr
         } else if (element instanceof IssueTypeItem) {
             return Promise.resolve(this.issues.get(element.issueType) || []);
         } else if (element instanceof IndividualIssueItem) {
-            return Promise.resolve(element.issue.instances.map((instance: any) => {
+            return Promise.resolve(element.issue.instances.map(async(instance: any) => {
+                const filePath = path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, instance.contract_path);
+                console.log(`Navigating to file: ${filePath} at line ${instance.line_no}`);
+                console.log(`${path.basename(instance.contract_path)}:${instance.line_no}`);
+                const srcParts = instance.src.split(':');
+                const startOffset = parseInt(srcParts[0], 10);
+                const length = parseInt(srcParts[1], 10);
+                const document = await vscode.workspace.openTextDocument(filePath);
+                const startPosition = document.positionAt(startOffset);
+                const endPosition = document.positionAt(startOffset + length);
                 return new IssueInstanceItem(
-                    `${instance.contract_path}:${instance.line_no}`,
+                    `${path.basename(instance.contract_path)}:${instance.line_no}`,
                     vscode.TreeItemCollapsibleState.None,
                     instance,
                     {
                         command: 'vscode.open',
                         title: '',
-                        arguments: [vscode.Uri.file(instance.contract_path), { selection: new vscode.Range(new vscode.Position(instance.line_no - 1, 0), new vscode.Position(instance.line_no - 1, 0)) }]
+                        arguments: [
+                            vscode.Uri.file(filePath), 
+                            {
+                                selection: new vscode.Range(startPosition, endPosition)
+                            }
+                        ]
                     }
                 );
             }));
