@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 
 export function checkAderynVersion(): Promise<boolean> {
-  const minVersion = '0.1.0';
+  const minVersion = '0.1.2';
   return new Promise((resolve) => {
     exec('aderyn --version', (error, stdout, stderr) => {
       if (error) {
