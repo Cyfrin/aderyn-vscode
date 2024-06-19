@@ -32,12 +32,28 @@ export function registerRunAderynCommand(
             const reportJsonString = stdoutBuffer.substring(startMarker + "STDOUT START".length, endMarker).trim();
             try {
               const report = JSON.parse(reportJsonString);
-              const testIssueItem = new IssueItem(
-                'Test Issue',
-                vscode.TreeItemCollapsibleState.None,
-                "nope"
-              );
-              aderynTreeDataProvider.refresh([testIssueItem]);
+
+              // Process the real issues from the report
+              const issueItems = [];
+              for (const issueType of ['high_issues', 'low_issues']) {
+                for (const issue of report[issueType].issues) {
+                  for (const instance of issue.instances) {
+                    const issueItem = new IssueItem(
+                      `${instance.contract_path}:${instance.src.split(':')[0]} - ${issue.title}`,
+                      vscode.TreeItemCollapsibleState.None,
+                      issue.description,
+                      {
+                        command: 'vscode.open',
+                        title: '',
+                        arguments: [vscode.Uri.file(instance.contract_path), { selection: new vscode.Range(new vscode.Position(parseInt(instance.src.split(':')[0]), 0), new vscode.Position(parseInt(instance.src.split(':')[0]), 0)) }]
+                      }
+                    );
+                    issueItems.push(issueItem);
+                  }
+                }
+              }
+              
+              aderynTreeDataProvider.refresh(issueItems);
             } catch (error) {
               aderynOutputChannel.appendLine(`Error parsing Aderyn output: ${error}`);
             }
