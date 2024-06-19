@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { registerRunAderynCommand } from './commands/runAderyn';
-import { SidebarProvider } from './providers/SidebarProvider';
 import { registerConfigureAderynCommand } from './commands/configureAderyn';
+import { AderynTreeDataProvider } from './providers/AderynTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "aderyn-vscode" is now active!');
@@ -23,19 +23,11 @@ export function activate(context: vscode.ExtensionContext) {
     aderynStatusBarItem.show();
     context.subscriptions.push(aderynStatusBarItem);
 
-    registerConfigureAderynCommand(context);
-    registerRunAderynCommand(context, aderynOutputChannel, diagnosticCollection, aderynStatusBarItem);
+    const aderynTreeDataProvider = new AderynTreeDataProvider(context);
+    vscode.window.registerTreeDataProvider('aderyn-results-tree', aderynTreeDataProvider);
 
-    const sidebarProvider = new SidebarProvider(
-        context.extensionUri,
-        context,
-        aderynOutputChannel,
-        diagnosticCollection
-    );
-    context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider("aderyn-sidebar", sidebarProvider)
-    );
-  
+    registerConfigureAderynCommand(context);
+    registerRunAderynCommand(context, aderynOutputChannel, diagnosticCollection, aderynStatusBarItem, aderynTreeDataProvider);
   
     const solidityWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
       if (document.languageId === 'solidity' && document.fileName.endsWith('.sol')) {
