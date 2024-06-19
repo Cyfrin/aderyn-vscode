@@ -33,10 +33,10 @@
     "views": {
       "aderyn-sidebar-view": [
         {
-					"id": "aderyn-results-tree",
-					"name": "Aderyn Results",
-					"icon": "media/dep.svg",
-					"contextualTitle": "Aderyn Results"
+          "id": "aderyn-results-tree",
+          "name": "Aderyn Results",
+          "icon": "media/dep.svg",
+          "contextualTitle": "Aderyn Results"
         }
       ]
     },
