@@ -3,7 +3,7 @@ import { checkAderynVersion } from '../util/checkAderynVersion';
 import { ChildProcess } from 'child_process';
 import { startAderynWatch } from '../util/startAderynWatch';
 import { AderynTreeDataProvider } from '../providers/AderynTreeDataProvider';
-import { IssueItem } from '../providers/IssueItem';
+import { IndividualIssueItem } from '../providers/IndividualIssueItem';
 
 export function registerRunAderynCommand(
   context: vscode.ExtensionContext,
@@ -34,28 +34,21 @@ export function registerRunAderynCommand(
               const report = JSON.parse(reportJsonString);
 
               // Process the real issues from the report
-              const issues = new Map<string, IssueItem[]>();
+              const issues = new Map<string, IndividualIssueItem[]>();
               issues.set('High Issues', []);
               issues.set('Low Issues', []);
 
               for (const issueType of ['high_issues', 'low_issues']) {
                 for (const issue of report[issueType].issues) {
-                  for (const instance of issue.instances) {
-                    const issueItem = new IssueItem(
-                      `${instance.contract_path}:${instance.src.split(':')[0]} - ${issue.title}`,
-                      vscode.TreeItemCollapsibleState.None,
-                      issue.description,
-                      {
-                        command: 'vscode.open',
-                        title: '',
-                        arguments: [vscode.Uri.file(instance.contract_path), { selection: new vscode.Range(new vscode.Position(parseInt(instance.src.split(':')[0]), 0), new vscode.Position(parseInt(instance.src.split(':')[0]), 0)) }]
-                      }
-                    );
-                    if (issueType === 'high_issues') {
-                      issues.get('High Issues')?.push(issueItem);
-                    } else {
-                      issues.get('Low Issues')?.push(issueItem);
-                    }
+                  const individualIssueItem = new IndividualIssueItem(
+                    issue.title,
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    issue
+                  );
+                  if (issueType === 'high_issues') {
+                    issues.get('High Issues')?.push(individualIssueItem);
+                  } else {
+                    issues.get('Low Issues')?.push(individualIssueItem);
                   }
                 }
               }

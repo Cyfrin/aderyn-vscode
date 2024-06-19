@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
 
-export class IssueItem extends vscode.TreeItem {
+export class IndividualIssueItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly issue: any,
-        public readonly command?: vscode.Command
+        public readonly issue: any
     ) {
         super(label, collapsibleState);
         this.tooltip = `${this.label}`;
-        this.description = this.issue;
+        this.description = this.issue.title;
     }
 }
