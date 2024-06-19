@@ -33,11 +33,10 @@
     "views": {
       "aderyn-sidebar-view": [
         {
-          "type": "webview",
-          "id": "aderyn-sidebar",
-          "name": "Aderyn",
-          "icon": "media/aderyn.svg",
-          "contextualTitle": "Aderyn"
+					"id": "aderyn-results-tree",
+					"name": "Aderyn Results",
+					"icon": "media/dep.svg",
+					"contextualTitle": "Aderyn Results"
         }
       ]
     },
@@ -56,6 +55,9 @@
       }
     ]
   },
+  "enabledApiProposals": [
+    "extensionRuntime"
+  ],
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
