@@ -34,7 +34,10 @@ export function registerRunAderynCommand(
               const report = JSON.parse(reportJsonString);
 
               // Process the real issues from the report
-              const issueItems = [];
+              const issues = new Map<string, IssueItem[]>();
+              issues.set('High Issues', []);
+              issues.set('Low Issues', []);
+
               for (const issueType of ['high_issues', 'low_issues']) {
                 for (const issue of report[issueType].issues) {
                   for (const instance of issue.instances) {
@@ -48,12 +51,16 @@ export function registerRunAderynCommand(
                         arguments: [vscode.Uri.file(instance.contract_path), { selection: new vscode.Range(new vscode.Position(parseInt(instance.src.split(':')[0]), 0), new vscode.Position(parseInt(instance.src.split(':')[0]), 0)) }]
                       }
                     );
-                    issueItems.push(issueItem);
+                    if (issueType === 'high_issues') {
+                      issues.get('High Issues')?.push(issueItem);
+                    } else {
+                      issues.get('Low Issues')?.push(issueItem);
+                    }
                   }
                 }
               }
               
-              aderynTreeDataProvider.refresh(issueItems);
+              aderynTreeDataProvider.refresh(issues);
             } catch (error) {
               aderynOutputChannel.appendLine(`Error parsing Aderyn output: ${error}`);
             }
@@ -83,7 +90,7 @@ export function registerRunAderynCommand(
       aderynOutputChannel.appendLine('Aderyn process stopped.');
       aderynProcess = null;
       diagnosticCollection.clear();
-      aderynTreeDataProvider.refresh([]);
+      aderynTreeDataProvider.refresh(new Map());
       statusBarItem.text = `$(play) Run Aderyn`;
       statusBarItem.command = 'aderyn-vscode.run';
     } else {

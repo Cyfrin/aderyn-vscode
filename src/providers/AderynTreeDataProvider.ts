@@ -1,26 +1,36 @@
 import * as vscode from 'vscode';
 import { IssueItem } from './IssueItem';
+import { IssueTypeItem } from './IssueTypeItem';
 
-export class AderynTreeDataProvider implements vscode.TreeDataProvider<IssueItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<IssueItem | undefined | void> = new vscode.EventEmitter<IssueItem | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<IssueItem | undefined | void> = this._onDidChangeTreeData.event;
+export class AderynTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+    private _onDidChangeTreeData: vscode.EventEmitter<IssueTypeItem | undefined | void> = new vscode.EventEmitter<IssueTypeItem | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<IssueTypeItem | undefined | void> = this._onDidChangeTreeData.event;
 
-    private issues: IssueItem[] = [];
+    private issues: Map<string, IssueItem[]> = new Map();
 
     constructor(private context: vscode.ExtensionContext) {}
 
-    refresh(issues: IssueItem[]): void {
+    refresh(issues: Map<string, IssueItem[]>): void {
         this.issues = issues;
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: IssueItem): vscode.TreeItem {
+    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
         return element;
     }
 
-    getChildren(element?: IssueItem): Thenable<IssueItem[]> {
+    getChildren(element?: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
         if (!element) {
-            return Promise.resolve(this.issues);
+            const issueTypes = Array.from(this.issues.keys()).map(type => {
+                return new IssueTypeItem(
+                    type,
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    type
+                );
+            });
+            return Promise.resolve(issueTypes);
+        } else if (element instanceof IssueTypeItem) {
+            return Promise.resolve(this.issues.get(element.issueType) || []);
         } else {
             return Promise.resolve([]);
         }
