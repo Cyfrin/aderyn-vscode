@@ -88,7 +88,7 @@ export function checkAderynVersion(): Promise<boolean> {
 async function installAderyn(): Promise<boolean> {
   return new Promise((resolve, reject) => {
     // Step 1: Download the installer
-    exec('curl -L https://raw.githubusercontent.com/Cyfrin/aderyn/feature/cyfrinup/cyfrinup/install | bash', (error, stdout, stderr) => {
+    exec('curl -L https://raw.githubusercontent.com/Cyfrin/aderyn/master/cyfrinup/install | bash', (error, stdout, stderr) => {
       if (error) {
         console.error(`Error downloading installer: ${stderr}`);
         resolve(false);
