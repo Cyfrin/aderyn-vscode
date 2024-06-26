@@ -3,21 +3,7 @@ import { exec } from 'child_process';
 import { installAderynUnix } from './installAderynUnix';
 import * as os from 'os';
 import * as path from 'path';
-
-function getGitBashPath(): string | null {
-  const gitBashPaths = [
-    'C:\\Program Files\\Git\\bin\\bash.exe',
-    'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
-  ];
-
-  for (const gitBashPath of gitBashPaths) {
-    if (require('fs').existsSync(gitBashPath)) {
-      return gitBashPath;
-    }
-  }
-
-  return null;
-}
+import { getGitBashPath } from './gitBashPath';
 
 export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): Promise<boolean> {
   const minVersion = '0.1.3';
