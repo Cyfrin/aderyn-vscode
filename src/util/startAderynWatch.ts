@@ -33,7 +33,15 @@ export function startAderynWatch(
   const gitBashPath = isWindows ? getGitBashPath() : null;
   const shell = isWindows && gitBashPath ? gitBashPath : true;
 
-  const aderynProcess = spawn('bash', ['-c', `source ~/.bashrc || source ~/.zshrc && aderyn ${args.join(' ')}`], {
+  const sourceCommands = `
+    [ -f ~/.zshrc ] && source ~/.zshrc;
+    [ -f ~/.bashrc ] && source ~/.bashrc;
+    [ -f ~/.bash_profile ] && source ~/.bash_profile;
+    [ -f ~/.profile ] && source ~/.profile;
+    aderyn ${args.join(' ')}
+  `;
+
+  const aderynProcess = spawn('bash', ['-c', sourceCommands], {
     cwd: workspaceFolder,
     shell,
   });
@@ -64,7 +72,7 @@ export function startAderynWatch(
   });
 
   aderynProcess.stderr?.on('data', (data) => {
-    aderynOutputChannel.append(data.toString());
+    aderynOutputChannel.append(`stderr: ${data.toString()}`);
   });
 
   aderynProcess.on('close', (code) => {
