@@ -1,20 +1,23 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { installAderyn } from './installAderyn';
+import { installAderynUnix } from './installAderynUnix';
+import * as os from 'os';
 
 export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): Promise<boolean> {
   const minVersion = '0.1.3';
+  const isWindows = os.platform() === 'win32';
+  const options = isWindows ? ["Open Installation Instructions"] : ["Install Aderyn", "Open Installation Instructions"];
+
   return new Promise((resolve) => {
     exec('aderyn --version', (error, stdout, stderr) => {
       if (error) {
         aderynOutputChannel.appendLine(`Error checking Aderyn version: ${stderr}`);
         vscode.window.showErrorMessage(
           "Aderyn not found. Please install aderyn.",
-          "Install Aderyn", // New button for installing Aderyn
-          "Open Installation Instructions"
+          ...options
         ).then(selection => {
           if (selection === "Install Aderyn") {
-            installAderyn(aderynOutputChannel).then(installed => {
+            installAderynUnix(aderynOutputChannel).then(installed => {
               if (installed) {
                 vscode.window.showInformationMessage("Aderyn installed successfully.");
                 resolve(true);
@@ -41,11 +44,10 @@ export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): P
           aderynOutputChannel.appendLine(`Aderyn version is too old. Found: ${installedVersion}, Required: ${minVersion}`);
           vscode.window.showErrorMessage(
             `Aderyn version is too old. Found: ${installedVersion}, Required: ${minVersion}. Please update aderyn.`,
-            "Install Aderyn",
-            "Open Installation Instructions"
+            ...options
           ).then(selection => {
             if (selection === "Install Aderyn") {
-              installAderyn(aderynOutputChannel).then(installed => {
+              installAderynUnix(aderynOutputChannel).then(installed => {
                 if (installed) {
                   vscode.window.showInformationMessage("Aderyn installed successfully. Please restart VSCode to complete the setup.");
                   resolve(true);
@@ -65,11 +67,10 @@ export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): P
         aderynOutputChannel.appendLine(`Unable to determine the installed version of aderyn: ${stdout}`);
         vscode.window.showErrorMessage(
           "Unable to determine the installed version of aderyn.",
-          "Install Aderyn",
-          "Open Installation Instructions"
+          ...options
         ).then(selection => {
           if (selection === "Install Aderyn") {
-            installAderyn(aderynOutputChannel).then(installed => {
+            installAderynUnix(aderynOutputChannel).then(installed => {
               if (installed) {
                 vscode.window.showInformationMessage("Aderyn installed successfully. Please restart VSCode to complete the setup.");
                 resolve(true);
