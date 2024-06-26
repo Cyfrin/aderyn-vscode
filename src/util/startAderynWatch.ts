@@ -72,7 +72,7 @@ export function startAderynWatch(
   });
 
   aderynProcess.stderr?.on('data', (data) => {
-    aderynOutputChannel.append(`stderr: ${data.toString()}`);
+    console.error(`stderr: ${data.toString()}`);
   });
 
   aderynProcess.on('close', (code) => {
