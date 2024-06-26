@@ -2,6 +2,22 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { installAderynUnix } from './installAderynUnix';
 import * as os from 'os';
+import * as path from 'path';
+
+function getGitBashPath(): string | null {
+  const gitBashPaths = [
+    'C:\\Program Files\\Git\\bin\\bash.exe',
+    'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
+  ];
+
+  for (const gitBashPath of gitBashPaths) {
+    if (require('fs').existsSync(gitBashPath)) {
+      return gitBashPath;
+    }
+  }
+
+  return null;
+}
 
 export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): Promise<boolean> {
   const minVersion = '0.1.3';
@@ -9,7 +25,10 @@ export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): P
   const options = isWindows ? ["Open Installation Instructions"] : ["Install Aderyn", "Open Installation Instructions"];
 
   return new Promise((resolve) => {
-    exec('aderyn --version', (error, stdout, stderr) => {
+    const gitBashPath = isWindows ? getGitBashPath() : null;
+    const execOptions = isWindows && gitBashPath ? { shell: gitBashPath } : {};
+
+    exec('aderyn --version', execOptions, (error, stdout, stderr) => {
       if (error) {
         aderynOutputChannel.appendLine(`Error checking Aderyn version: ${stderr}`);
         vscode.window.showErrorMessage(
