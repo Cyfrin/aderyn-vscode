@@ -16,8 +16,11 @@ export function registerRunAderynCommand(
 
   const runCommand = vscode.commands.registerCommand('aderyn-vscode.run', async () => {
     if (!aderynProcess) {
-      const versionCheckPassed = await checkAderynVersion();
+      vscode.window.showInformationMessage('Setting Aderyn up. Please wait...');
+      const versionCheckPassed = await checkAderynVersion(aderynOutputChannel);
       if (versionCheckPassed) {
+        vscode.window.showInformationMessage('Aderyn Starting...');
+        let isRunningHasBeenDisplayed = false;
         aderynProcess = startAderynWatch(context, aderynOutputChannel, diagnosticCollection, '', '', '');
         statusBarItem.text = `$(primitive-square) Stop Aderyn`;
         statusBarItem.command = 'aderyn-vscode.stop';
@@ -54,6 +57,10 @@ export function registerRunAderynCommand(
               }
               
               aderynTreeDataProvider.refresh(issues);
+              if (!isRunningHasBeenDisplayed) {
+                vscode.window.showInformationMessage('Aderyn is running!');
+                isRunningHasBeenDisplayed = true;
+              }
             } catch (error) {
               aderynOutputChannel.appendLine(`Error parsing Aderyn output: ${error}`);
             }
@@ -62,7 +69,7 @@ export function registerRunAderynCommand(
         });
 
         aderynProcess.stderr?.on('data', (data) => {
-          aderynOutputChannel.appendLine(`stderr: ${data}`);
+          console.error(`stderr: ${data}`);
         });
 
         aderynProcess.on('close', (code) => {
