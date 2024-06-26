@@ -69,7 +69,7 @@ export function registerRunAderynCommand(
         });
 
         aderynProcess.stderr?.on('data', (data) => {
-          aderynOutputChannel.appendLine(`stderr: ${data}`);
+          console.error(`stderr: ${data}`);
         });
 
         aderynProcess.on('close', (code) => {
