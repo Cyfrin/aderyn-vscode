@@ -27,8 +27,9 @@ export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): P
   return new Promise((resolve) => {
     const gitBashPath = isWindows ? getGitBashPath() : null;
     const execOptions = isWindows && gitBashPath ? { shell: gitBashPath } : {};
+    const command = isWindows ? 'source ~/.bashrc || source ~/.zshrc && aderyn --version' : 'aderyn --version';
 
-    exec('aderyn --version', execOptions, (error, stdout, stderr) => {
+    exec(command, execOptions, (error, stdout, stderr) => {
       if (error) {
         aderynOutputChannel.appendLine(`Error checking Aderyn version: ${stderr}`);
         vscode.window.showErrorMessage(
