@@ -16,8 +16,9 @@ export function registerRunAderynCommand(
 
   const runCommand = vscode.commands.registerCommand('aderyn-vscode.run', async () => {
     if (!aderynProcess) {
-      const versionCheckPassed = await checkAderynVersion();
+      const versionCheckPassed = await checkAderynVersion(aderynOutputChannel);
       if (versionCheckPassed) {
+        vscode.window.showInformationMessage('Running Aderyn...');
         aderynProcess = startAderynWatch(context, aderynOutputChannel, diagnosticCollection, '', '', '');
         statusBarItem.text = `$(primitive-square) Stop Aderyn`;
         statusBarItem.command = 'aderyn-vscode.stop';
