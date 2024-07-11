@@ -38,7 +38,7 @@ export class AderynTreeDataProvider implements vscode.TreeDataProvider<vscode.Tr
                 const filePath = path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, instance.contract_path);
                 console.log(`Navigating to file: ${filePath} at line ${instance.line_no}`);
                 console.log(`${path.basename(instance.contract_path)}:${instance.line_no}`);
-                const srcParts = instance.src.split(':');
+                const srcParts = instance.src_char.split(':');
                 const startOffset = parseInt(srcParts[0], 10);
                 const length = parseInt(srcParts[1], 10);
                 const document = await vscode.workspace.openTextDocument(filePath);
