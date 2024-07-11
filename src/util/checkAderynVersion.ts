@@ -6,7 +6,7 @@ import * as path from 'path';
 import { getGitBashPath } from './gitBashPath';
 
 export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): Promise<boolean> {
-  const minVersion = '0.1.3';
+  const minVersion = '0.1.5';
   const isWindows = os.platform() === 'win32';
   const options = isWindows ? ["Open Installation Instructions"] : ["Install Aderyn", "Open Installation Instructions"];
 

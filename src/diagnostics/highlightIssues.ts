@@ -15,7 +15,7 @@ export function highlightIssues(report: Report, diagnosticCollection: vscode.Dia
 
 function highlightIssueInstance(issue: any, instance: any, severityString: string, diagnosticSeverity: vscode.DiagnosticSeverity, diagnosticCollection: vscode.DiagnosticCollection) {
     const issueUri = vscode.Uri.file(path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, instance.contract_path));
-    const srcParts = instance.src.split(':');
+    const srcParts = instance.src_char.split(':');
     const startOffset = parseInt(srcParts[0], 10);
     const length = parseInt(srcParts[1], 10);
 

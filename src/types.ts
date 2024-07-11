@@ -6,7 +6,7 @@ export interface Issue {
 
 export interface Instance {
     contract_path: string;
-    src: string;
+    src_char: string;
 }
 
 export interface Report {
