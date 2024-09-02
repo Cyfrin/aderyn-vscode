@@ -5,8 +5,21 @@ import * as os from 'os';
 import * as path from 'path';
 import { getGitBashPath } from './gitBashPath';
 
+function compareVersions(v1: string, v2: string): number {
+  const v1Parts = v1.split('.').map(Number);
+  const v2Parts = v2.split('.').map(Number);
+
+  for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+    const v1Part = v1Parts[i] || 0;
+    const v2Part = v2Parts[i] || 0;
+    if (v1Part > v2Part) return 1;
+    if (v1Part < v2Part) return -1;
+  }
+  return 0;
+}
+
 export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): Promise<boolean> {
-  const minVersion = '0.1.3';
+  const minVersion = '0.2.0';
   const isWindows = os.platform() === 'win32';
   const options = isWindows ? ["Open Installation Instructions"] : ["Install Aderyn", "Open Installation Instructions"];
 
@@ -44,7 +57,7 @@ export function checkAderynVersion(aderynOutputChannel: vscode.OutputChannel): P
       const match = stdout.match(versionPattern);
       if (match) {
         const installedVersion = match[1];
-        if (installedVersion >= minVersion) {
+        if (compareVersions(installedVersion, minVersion) >= 0) {
           resolve(true);
         } else {
           aderynOutputChannel.appendLine(`Aderyn version is too old. Found: ${installedVersion}, Required: ${minVersion}`);

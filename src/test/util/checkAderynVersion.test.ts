@@ -28,7 +28,7 @@ suite('checkAderynVersion Test Suite', () => {
   });
 
   test('should return true if version is correct', async () => {
-    execStub.yields(null, 'aderyn 0.1.3', '');
+    execStub.yields(null, 'aderyn 0.2.0', '');
 
     const result = await checkAderynVersion(aderynOutputChannel);
     assert.strictEqual(result, true);
